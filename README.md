@@ -85,6 +85,7 @@ Panther's Model Context Protocol (MCP) server provides functionality to:
 | Tool Name | Description | Sample Prompt |
 |-----------|-------------|---------------|
 | `list_panther_users` | List all Panther user accounts | "Show me all active Panther users" |
+| `get_permissions` | Get the current user's permissions | "What permissions do I have?" |
 
 </details>
 

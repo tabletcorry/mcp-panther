@@ -6,12 +6,17 @@ import logging
 from typing import Any, Dict
 
 from ..client import get_rest_client
+from ..permissions import Permission, any_perms
 from .registry import mcp_tool
 
 logger = logging.getLogger("mcp-panther")
 
 
-@mcp_tool
+@mcp_tool(
+    annotations={
+        "permissions": any_perms(Permission.RULE_READ, Permission.POLICY_READ),
+    }
+)
 async def get_global_helper_by_id(helper_id: str) -> Dict[str, Any]:
     """Get detailed information about a Panther global helper by ID
 
@@ -52,7 +57,11 @@ async def get_global_helper_by_id(helper_id: str) -> Dict[str, Any]:
         }
 
 
-@mcp_tool
+@mcp_tool(
+    annotations={
+        "permissions": any_perms(Permission.RULE_READ, Permission.POLICY_READ),
+    }
+)
 async def list_global_helpers(cursor: str = None, limit: int = 100) -> Dict[str, Any]:
     """List all global helpers from Panther with optional pagination
 
