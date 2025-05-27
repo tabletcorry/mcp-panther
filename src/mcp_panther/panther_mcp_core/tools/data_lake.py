@@ -197,11 +197,16 @@ async def execute_data_lake_query(
         "permissions": all_perms(Permission.DATA_ANALYTICS_READ),
     }
 )
-async def get_data_lake_query_results(query_id: str) -> Dict[str, Any]:
+async def get_data_lake_query_results(
+    query_id: Annotated[
+        str,
+        Field(
+            description="The ID of the query to get results for",
+            example="1234567890",
+        ),
+    ],
+) -> Dict[str, Any]:
     """Get the results of a previously executed data lake query.
-
-    Args:
-        query_id: The ID of the query to get results for
 
     Returns:
         Dict containing:
@@ -354,7 +359,15 @@ async def list_databases() -> Dict[str, Any]:
         "permissions": all_perms(Permission.DATA_ANALYTICS_READ),
     }
 )
-async def list_database_tables(database: str) -> Dict[str, Any]:
+async def list_database_tables(
+    database: Annotated[
+        str,
+        Field(
+            description="The name of the database to list tables for",
+            example="panther_logs.public",
+        ),
+    ],
+) -> Dict[str, Any]:
     """List all available tables in a Panther Database.
 
     Required: Only use valid database names obtained from list_databases
@@ -427,12 +440,34 @@ async def list_database_tables(database: str) -> Dict[str, Any]:
         "permissions": all_perms(Permission.DATA_ANALYTICS_READ),
     }
 )
-async def get_table_schema(database_name: str, table_name: str) -> Dict[str, Any]:
+async def get_table_schema(
+    database_name: Annotated[
+        str,
+        Field(
+            description="The name of the database where the table is located",
+            example="panther_logs.public",
+        ),
+    ],
+    table_name: Annotated[
+        str,
+        Field(
+            description="The name of the table to get columns for",
+            example="Panther.Audit",
+        ),
+    ],
+) -> Dict[str, Any]:
     """Get column details for a specific datalake table.
 
-    Args:
-        database_name: The name of the database where the table is located
-        table_name: The name of the table to get columns for
+    IMPORTANT: This returns the table structure in Snowflake/Redshift. For writing
+    optimal queries, ALSO call get_panther_log_type_schema() to understand:
+    - Nested object structures (only shown as 'object' type here)
+    - Which fields map to p_any_* indicator columns
+    - Array element structures
+
+    Example workflow:
+    1. get_panther_log_type_schema(["AWS.CloudTrail"]) - understand structure
+    2. get_table_schema("panther_logs.public", "aws_cloudtrail") - get column names/types
+    3. Write query using both: nested paths from log schema, column names from table schema
 
     Returns:
         Dict containing:
@@ -499,7 +534,15 @@ async def get_table_schema(database_name: str, table_name: str) -> Dict[str, Any
         "permissions": all_perms(Permission.DATA_ANALYTICS_READ),
     }
 )
-async def get_sample_log_events(log_type: str) -> Dict[str, Any]:
+async def get_sample_log_events(
+    schema_name: Annotated[
+        str,
+        Field(
+            description="The schema name to query for sample log events",
+            example="Panther.Audit",
+        ),
+    ],
+) -> Dict[str, Any]:
     """Get a sample of 10 log events for a specific log type from the panther_logs.public database.
 
     This function is the RECOMMENDED tool for quickly exploring sample log data with minimal effort.
@@ -512,21 +555,12 @@ async def get_sample_log_events(log_type: str) -> Dict[str, Any]:
 
     Example usage:
         # Step 1: Get query_id for sample events
-        result = get_sample_log_events(log_type="Panther.Audit")
+        result = get_sample_log_events(schema_name="Panther.Audit")
 
         # Step 2: Retrieve the actual results using the query_id
-        if result["success"]:
-            events = get_data_lake_query_results(query_id=result["query_id"])
+        events = get_data_lake_query_results(query_id=result["query_id"])
 
-            # Step 3: Display results in multiple formats for better analysis
-            # Display as a formatted table for human readability
-            display_table_format(events["results"])
-
-            # Optionally provide JSON format for deeper inspection
-            print(json.dumps(events["results"][0], indent=2))
-
-    Args:
-        log_type: The log type to query (this is also typically the table name)
+        # Step 3: Display results in a markdown table format
 
     Returns:
         Dict containing:
@@ -541,10 +575,10 @@ async def get_sample_log_events(log_type: str) -> Dict[str, Any]:
         3. Highlight key fields and patterns across records
     """
 
-    logger.info(f"Fetching sample log events for log type: {log_type}")
+    logger.info(f"Fetching sample log events for schema: {schema_name}")
 
     database_name = "panther_logs.public"
-    table_name = _normalize_name(log_type)
+    table_name = _normalize_name(schema_name)
 
     try:
         sql = f"""
