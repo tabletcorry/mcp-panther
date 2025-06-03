@@ -136,15 +136,7 @@ def main(transport: str, port: int, host: str, log_file: str | None):
 
         logger.info(f"Starting Panther MCP Server with SSE transport on {host}:{port}")
         # Use Uvicorn's Config and Server classes for more control
-        # Disable Uvicorn's own logging configuration so we keep our handlers
-        config = uvicorn.Config(
-            app,
-            host=host,
-            port=port,
-            timeout_graceful_shutdown=1,
-            log_config=None,
-            log_level=log_level,
-        )
+        config = uvicorn.Config(app, host=host, port=port, timeout_graceful_shutdown=1)
         server = uvicorn.Server(config)
 
         # Override the default behavior
