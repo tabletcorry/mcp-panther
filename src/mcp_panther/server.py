@@ -22,7 +22,11 @@ log_level = getattr(logging, log_level_name.upper(), logging.DEBUG)
 
 # Configure logging
 def configure_logging(log_file: str | None = None, *, force: bool = False) -> None:
-    """Configure logging to stderr or the specified file."""
+    """Configure logging to stderr or the specified file.
+
+    This also reconfigures the ``FastMCP`` logger so that all FastMCP output
+    uses the same handler as the rest of the application.
+    """
 
     handler: logging.Handler
     if log_file:
@@ -36,6 +40,13 @@ def configure_logging(log_file: str | None = None, *, force: bool = False) -> No
         handlers=[handler],
         force=force,
     )
+
+    # Ensure FastMCP logs propagate to the root logger
+    fastmcp_logger = logging.getLogger("FastMCP")
+    for hdlr in list(fastmcp_logger.handlers):
+        fastmcp_logger.removeHandler(hdlr)
+    fastmcp_logger.propagate = True
+    fastmcp_logger.setLevel(log_level)
 
 
 configure_logging(os.environ.get("MCP_LOG_FILE"))
