@@ -75,7 +75,8 @@ logging.basicConfig(
 )
 ```
 To send logs to a file instead, run the server with `--log-file <path>` or set the
-`MCP_LOG_FILE` environment variable.
+`MCP_LOG_FILE` environment variable. Any logs from Uvicorn or other dependencies
+will also be written to the configured file.
 
 ### Run the Development Server
 
