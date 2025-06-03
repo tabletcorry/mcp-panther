@@ -74,6 +74,8 @@ logging.basicConfig(
     stream=sys.stderr,
 )
 ```
+To send logs to a file instead, run the server with `--log-file <path>` or set the
+`MCP_LOG_FILE` environment variable.
 
 ### Run the Development Server
 
