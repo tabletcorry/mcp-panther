@@ -4,10 +4,9 @@ from mcp_panther.panther_mcp_core.tools.data_lake import (
     QueryStatus,
     _is_name_normalized,
     _normalize_name,
-    cancel_data_lake_query,
+    _cancel_data_lake_query,
     execute_data_lake_query,
     get_sample_log_events,
-    list_data_lake_queries,
 )
 from tests.utils.helpers import patch_graphql_client
 
@@ -354,7 +353,7 @@ async def test_cancel_data_lake_query_success(mock_graphql_client):
     mock_response = {"cancelDataLakeQuery": {"id": "query123"}}
     mock_graphql_client.execute.return_value = mock_response
 
-    result = await cancel_data_lake_query("query123")
+    result = await _cancel_data_lake_query("query123")
 
     assert result["success"] is True
     assert result["query_id"] == "query123"
